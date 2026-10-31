@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "excre-credit-risk"
+version = "0.1.0"
+description = "An explainable credit-default prediction project"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "joblib>=1.2",
+    "pandas>=2.0",
+    "scikit-learn>=1.2",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0"]
+
+[project.scripts]
+credit-risk = "credit_risk.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["credit_risk*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

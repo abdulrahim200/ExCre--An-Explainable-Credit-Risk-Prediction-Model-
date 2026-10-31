@@ -1,120 +1,78 @@
+# ExCre: Explainable Credit Risk Prediction
 
----
+ExCre predicts whether a customer will default on a credit card. The notebook
+workflows are preserved as reference; the `credit_risk` package provides a
+reproducible command-line project for training, evaluating, explaining, and
+scoring records.
 
-## 🧠 Problem Statement
+## Project layout
 
-Financial institutions need to determine **whether a borrower is likely to default**.  
-Traditional ML models often act as “black boxes,” making them unsuitable for regulated environments.
+```text
+credit_risk/          Python package and CLI
+dataset/
+  train.csv           Labeled training data
+  test.csv            Unlabeled records to score
+tests/                Project tests
+artifacts/            Generated model and reports (created on training)
+Credit Risk Analysis.ipynb
+preprocessing.ipynb
+```
 
-ExCre solves this problem by combining:
+The notebooks are kept unchanged. Training uses `credit_card_default` as the
+target, omits customer identifiers, imputes missing values, standardizes
+numeric features, one-hot encodes categorical features, and fits a
+class-weighted logistic regression. The class weighting addresses the target
+imbalance without creating synthetic one-hot category values.
 
-- **High-performance ML models**
-- **Transparent, interpretable explanations**
-- **Cost-sensitive evaluation metrics (recall-focused)**
+## Set up
 
----
+From the project directory, create and activate a virtual environment, then
+install the package:
 
-## 🛠️ Tech Stack
+```powershell
+py -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -e ".[dev]"
+```
 
-- **Programming:** Python  
-- **ML Models:** Logistic Regression, Random Forest, XGBoost  
-- **Explainability:** SHAP  
-- **Libraries:** Pandas, NumPy, Scikit-Learn, XGBoost, Matplotlib, Seaborn  
-- **Environment:** Jupyter Notebook  
+## Train and evaluate
 
----
+```powershell
+python -m credit_risk train
+```
 
-## 🔍 Workflow Overview
+By default this reads `dataset/train.csv`, makes a stratified 70/30
+train/validation split (random seed 42), and writes:
 
-### 1️⃣ Exploratory Data Analysis (EDA)
-- Visualized distributions, correlations, and risk segments  
-- Identified missing values & outliers  
-- Analyzed class imbalance in target variable
+- `artifacts/model.joblib` — fitted preprocessing and model pipeline
+- `artifacts/metrics.json` — accuracy, precision, recall, F1, ROC-AUC, and
+  confusion matrix for the holdout split
+- `artifacts/feature_coefficients.csv` — logistic coefficients and odds ratios
 
-### 2️⃣ Data Preprocessing
-- Treated missing values  
-- One-hot encoded categorical variables  
-- Standardized numerical features  
-- Train-test split for robust evaluation  
+Pass `--data` or `--output-dir` to use different paths. The coefficients
+describe the fitted logistic model; they are not causal effects.
 
-### 3️⃣ Model Training & Comparison
-Models evaluated:
-- Logistic Regression  
-- Random Forest  
-- Gradient Boosting  
-- **XGBoost** (best performer)
+## Score records
 
-### 4️⃣ Evaluation Metrics
-- Accuracy  
-- Precision  
-- Recall  
-- Confusion Matrix  
-- ROC & AUC Score  
+After training, score the supplied unlabeled data:
 
-**Best Model (XGBoost):**  
-- **Accuracy:** 0.88  
-- **Precision:** 0.85  
-- **Recall:** 0.91  
-- **AUC-ROC:** 0.94  
+```powershell
+python -m credit_risk predict
+```
 
-### 5️⃣ Explainability (SHAP)
-- Global feature importance (beeswarm plot)  
-- Local explanations (force plot)  
-- Key predictors identified:
-  - Loan Amount  
-  - Applicant Income  
-  - Credit History  
-  - Debt-to-Income Ratio  
+This reads `dataset/test.csv` and writes `artifacts/predictions.csv`, with
+`customer_id`, `predicted_default`, and `default_probability` columns. Change
+the decision threshold with `--threshold`, or provide `--data`, `--model`, and
+`--output` paths.
 
-Through SHAP, the model becomes **transparent**, allowing auditors and risk officers to understand *why* a prediction is made.
+## Run tests
 
----
+```powershell
+python -m pytest
+```
 
-## 📈 Visual Outputs (Optional)
-Add images such as:
-- ROC Curve  
-- Confusion Matrix  
-- SHAP Summary Plot  
-- SHAP Force Plot  
+## Dataset fields
 
-Place them inside `/plots` and embed in README.
-
----
-
-## 🧪 Results Summary
-
-| Model                  | Accuracy | Precision | Recall | AUC-ROC |
-|------------------------|----------|-----------|--------|---------|
-| Logistic Regression    | 0.78     | 0.74      | 0.81   | –       |
-| Random Forest          | 0.86     | 0.83      | 0.89   | –       |
-| **XGBoost (Best)**     | **0.88** | **0.85**  | **0.91**| **0.94** |
-
----
-
-## 🔮 Future Improvements
-
-- Hyperparameter tuning with Optuna or Hyperopt  
-- Deploying model as REST API (FastAPI)  
-- Streamlit dashboard for real-time credit scoring  
-- Incorporating additional financial features  
-- Handling data imbalance with SMOTE or class weighting  
-
----
-
-## 📜 License
-
-This project is open-source and available under the MIT License.
-
----
-
-## 🤝 Contributions
-
-Pull requests, improvements, or suggestions are welcome!
-
----
-
-## 📧 Contact  
-
-**Author:** Abdul Rahim  
-GitHub: https://github.com/abdulrahim200  
-Project Link: https://github.com/abdulrahim200/ExCre--An-Explainable-Credit-Risk-Prediction-Model-
+The target is `credit_card_default` (`1` = default, `0` = no default).
+`customer_id` and `name` are excluded from model features. The supplied test
+file has no target column.

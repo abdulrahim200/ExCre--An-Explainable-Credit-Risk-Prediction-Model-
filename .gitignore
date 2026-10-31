@@ -15,6 +15,11 @@ data/processed/*
 venv/
 .venv/
 
+# Generated project artifacts
+artifacts/
+.pytest_cache/
+*.egg-info/
+
 # OS files
 .DS_Store
 Thumbs.db
